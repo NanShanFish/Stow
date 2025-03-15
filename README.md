@@ -1,23 +1,44 @@
 STOW CLONE
 ----------
 
-### Introduction
-This is a simple PowerShell script that wants to emulate GNU Stow's
-behaviour on Windows. As of now it really just takes all the files in the given
-directory and link them to the specified target.
+## Introduction
+This is a rudimentary implementation of Stow for Windows, written in PowerShell, forked from [Stow](https://github.com/mattialancellotti/Stow).
 
-### Installation
-As of now there is no installation method. Also I do not recommend installing it
-since it is going to be split in multiple files and modules.  
-Just run it like this '.\Main.ps1 \<arguments\>'
+## Usage
+```powershell
+stow.ps1 -t <target-dir> -d <source-dir> [-dotfile] -Stow/-Unstow pkg1, pkg2, ...
+```
+Unlike GNU Stow, this implementation creates **absolute symbolic links**.
 
-### Usage
-To understand this program's syntax just run `Main.ps1 -?`, this will give you a
-list of possible commands. If you don't really know why this is useful to me, well
-let's say you have multiple files, like Dockerfiles, batch scripts or maybe
-configuration files for gvim and other programs. These files should be put in
-different directories, some of them in a specific path like *shell:startup* while
-others are organized in you Desktop, Documents or anything else. Keeping track of
-them will eventually bring you to madness. With this script you can have all of
-them in one single directory and automatically link them to where those files
-should be put.
+When the `-dotfile` option is used, Stow replaces the leading `dot-` in link names with `.`.
+
+- `target-dir` defaults to the parent directory of the current working directory.
+- `source-dir` defaults to the current working directory.
+- If neither `-Stow` nor `-Unstow` is specified, -Stow is used by default.
+
+Stow attempts to fold links (similar to GNU Stow). However, if you do not want to fold links, you can append `~` to the folder name.
+
+e.g.:
+```txt
+source-dir
+├─alacritty
+│  └─AppData
+│      └─Roaming
+│          └─alacritty
+│              └─alacritty.toml
+├─git
+│  └─dot-gitignore
+└─some-pkg
+    └dot-sample~
+        └dot-test
+```
+Run `stow.ps1 -t ~ -d source-dir -dotfile git, alacritty, some-pkg`
+```
+~
+├─AppData
+│      └─Roaming
+│          └─alacritty -> source-dir\alacritty\AppData\Roaming\alacritty
+├─.gitignore -> source-dir\git\dot-gitignore
+└─.sample
+    └.test -> source-dir\some-pkg\dot-sample~\dot-test
+```
